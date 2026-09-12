@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Big Red Radar</title>
+<style>
+  :root {
+    --red: #b31b1b;
+    --red-soft: #b31b1b14;
+    --bg: #faf9f7;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e5e2dd;
+    --sidebar: #f3f1ee;
+    --warn: #8a5a00;
+    --warn-bg: #fff6e0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --red: #f05252;
+      --red-soft: #f0525220;
+      --bg: #141413;
+      --card: #1e1e1c;
+      --text: #f0efed;
+      --muted: #9a9894;
+      --line: #2e2e2b;
+      --sidebar: #1a1a18;
+      --warn: #f0c060;
+      --warn-bg: #2a2415;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  button { font: inherit; cursor: pointer; }
+  a { color: inherit; }
+
+  /* ---------- layout ---------- */
+
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 230px;
+    flex-shrink: 0;
+    padding: 24px 16px;
+    background: var(--sidebar);
+    border-right: 1px solid var(--line);
+  }
+
+  .brand { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .brand span { color: var(--red); }
+
+  .navbtn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 12px;
+    margin-bottom: 4px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .navbtn:hover { background: var(--red-soft); }
+  .navbtn.on { background: var(--red); color: #fff; font-weight: 600; }
+  .navbtn .count { float: right; opacity: 0.6; font-size: 13px; }
+
+  .main { flex: 1; min-width: 0; padding: 0 20px 80px; }
+  .inner { max-width: 660px; margin: 0 auto; }
+
+  .topbar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .hamburger {
+    padding: 6px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+  }
+
+  .backdrop { display: none; }
+
+  @media (max-width: 760px) {
+    .topbar { display: flex; }
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 20;
+      transform: translateX(-100%);
+      transition: transform 0.18s ease;
+    }
+    .sidebar.open { transform: none; }
+    .backdrop.show {
+      display: block;
+      position: fixed; inset: 0; z-index: 10;
+      background: rgba(0,0,0,0.4);
+    }
+  }
+
+  /* ---------- bits ---------- */
+
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 24px 0 16px;
+  }
+  .head h2 { margin: 0 0 2px; font-size: 22px; letter-spacing: -0.02em; }
+  .head .sub { margin: 0; color: var(--muted); font-size: 15px; }
+
+  .ghost {
+    flex-shrink: 0;
+    display: inline-block;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 14px;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .ghost:hover { border-color: var(--red); color: var(--red); }
+
+  .field {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font: inherit;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .field:focus { outline: 2px solid var(--red); outline-offset: -1px; }
+
+  .primary {
+    padding: 11px 20px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--red);
+    color: #fff;
+    font-weight: 600;
+  }
+  .primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+
+  .chip {
+    padding: 7px 13px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 14px;
+  }
+  .chip:hover { border-color: var(--red); }
+  .chip.on { background: var(--red); border-color: var(--red); color: #fff; font-weight: 600; }
+  .chip .n { opacity: 0.55; margin-left: 5px; font-size: 12px; }
+
+  .bar {
+    position: sticky; bottom: 0;
+    padding: 16px 0;
+    background: linear-gradient(transparent, var(--bg) 35%);
+  }
+
+  .daylabel {
+    position: sticky; top: 0;
+    padding: 16px 0 8px;
+    background: var(--bg);
+    font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+
+  .event {
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .event:hover { border-color: var(--red); }
+
+  .time { font-size: 13px; font-weight: 600; color: var(--red); }
+
+  .title {
+    display: block;
+    margin: 3px 0;
+    font-size: 16px; font-weight: 600;
+    text-decoration: none;
+  }
+  .title:hover { text-decoration: underline; }
+
+  .meta { font-size: 14px; color: var(--muted); }
+
+  .actions { margin-top: 10px; }
+
+  .addbtn {
+    display: inline-block;
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--muted);
+  }
+  .addbtn:hover { border-color: var(--red); color: var(--red); }
+
+  .status { padding: 48px 0; text-align: center; color: var(--muted); }
+  .status .primary, .status .ghost { margin-top: 16px; }
+  .status code {
+    display: inline-block;
+    padding: 2px 7px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">Big Red <span>Radar</span></div>
+    <button class="navbtn" data-view="feed">My feed <span class="count" id="followCount"></span></button>
+    <button class="navbtn" data-view="explore">Explore</button>
+  </aside>
+
+  <div class="backdrop" id="backdrop"></div>
+
+  <main class="main">
+    <div class="inner">
+      <div class="topbar">
+        <button class="hamburger" id="hamburger">&#9776;</button>
+        <strong>Big Red Radar</strong>
+      </div>
+      <div id="screen"><p class="status">Loading&hellip;</p></div>
+    </div>
+  </main>
+
+</div>
+
+<script type="module">
+// ---------------------------------------------------------------- state
+
+const screenEl = document.getElementById('screen')
+const sidebar  = document.getElementById('sidebar')
+const backdrop = document.getElementById('backdrop')
+
+let orgs = []
+let follows = loadFollows()
+
+function loadFollows() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem('brr.follows') || '[]'))
+  } catch {
+    return new Set()
+  }
+}
+
+function saveFollows() {
+  try {
+    localStorage.setItem('brr.follows', JSON.stringify([...follows]))
+  } catch {}
+}
+
+// ---------------------------------------------------------------- helpers
+
+const ITHACA = 'America/New_York'
+const fmtTime = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, hour: 'numeric', minute: '2-digit' })
+const fmtDay  = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, weekday: 'long', month: 'long', day: 'numeric' })
+const fmtKey  = new Intl.DateTimeFormat('en-CA', { timeZone: ITHACA, year: 'numeric', month: '2-digit', day: '2-digit' })
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]))
+}
+
+async function getJson(url) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`${url} returned ${res.status}`)
+  return res.json()
+}
+
+function matches(e, q) {
+  return (e.title || '').toLowerCase().includes(q)
+      || (e.org_name || '').toLowerCase().includes(q)
+      || (e.location || '').toLowerCase().includes(q)
+}
+
+// ---------------------------------------------------------------- google links
+
+// 2026-09-16T23:00:00.000Z -> 20260916T230000Z
+function utcStamp(d) {
+  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+}
+
+// The date in Ithaca, as 20260916
+function ymd(d) {
+  return fmtKey.format(d).replace(/-/g, '')
+}
+
+// Google Calendar's "prefill a new event" link. Nothing to install, no login -
+// it just opens Google with the boxes already filled in.
+function gcalUrl(e) {
+  const start = new Date(e.starts_at)
+  const hour = 60 * 60 * 1000
+
+  let dates
+  if (e.all_day) {
+    // End date is exclusive: a one-day event ends the NEXT day.
+    const end = e.ends_at ? new Date(e.ends_at) : new Date(start.getTime() + 24 * hour)
+    dates = `${ymd(start)}/${ymd(end)}`
+  } else {
+    const end = e.ends_at ? new Date(e.ends_at) : new Date(start.getTime() + hour)
+    dates = `${utcStamp(start)}/${utcStamp(end)}`
+  }
+
+  const details = [e.description || '', e.url ? `\n\n${e.url}` : ''].join('').trim()
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: e.org_name ? `${e.title} (${e.org_name})` : e.title,
+    dates,
+    details,
+    location: e.location || '',
+    ctz: ITHACA,
+  })
+
+  return 'https://calendar.google.com/calendar/render?' + params.toString()
+}
+
+// ---------------------------------------------------------------- event list
+
+function eventListHtml(events) {
+  let html = ''
+  let day = null
+
+  for (const e of events) {
+    const when = new Date(e.starts_at)
+    const key = fmtKey.format(when)
+
+    if (key !== day) {
+      day = key
+      html += `<div class="daylabel">${fmtDay.format(when)}</div>`
+    }
+
+    const time = e.all_day ? 'All day' : fmtTime.format(when)
+    const place = e.location ? ' &middot; ' + esc(e.location) : ''
+
+    html += `
+      <div class="event">
+        <div class="time">${time}</div>
+        <a class="title" href="${esc(e.url || '#')}" target="_blank" rel="noopener">${esc(e.title)}</a>
+        <div class="meta">${esc(e.org_name)}${place}</div>
+        <div class="actions">
+          <a class="addbtn" href="${esc(gcalUrl(e))}" target="_blank" rel="noopener">+ Google Calendar</a>
+        </div>
+      </div>`
+  }
+
+  return html
+}
+
+// ---------------------------------------------------------------- screens
+
+function showClubs() {
+  const first = follows.size === 0
+
+  if (orgs.length === 0) {
+    screenEl.innerHTML = `
+      <div class="status">
+        No clubs in the database yet.<br>
+        Run the ingest to fill it:<br><code>npx tsx src/ingest.ts</code>
+      </div>`
+    return
+  }
+
+  screenEl.innerHTML = `
+    <div class="head">
+      <div>
+        <h2>${first ? 'Which clubs are you into?' : 'My clubs'}</h2>
+        <p class="sub">${first
+          ? 'Pick a few. Your feed shows only these - change it any time.'
+          : 'Tap to follow or unfollow.'}</p>
+      </div>
+    </div>
+    <input class="field" id="clubSearch" type="search" placeholder="Search ${orgs.length} clubs&hellip;">
+    <div class="chips" id="chips"></div>
+    <div class="bar"><button class="primary" id="done"></button></div>
+  `
+
+  const search = document.getElementById('clubSearch')
+  const chips  = document.getElementById('chips')
+  const done   = document.getElementById('done')
+
+  function paint() {
+    const q = search.value.trim().toLowerCase()
+
+    let shown = orgs.filter(o => !q || o.name.toLowerCase().includes(q))
+
+    shown.sort((a, b) => {
+      const fa = follows.has(a.slug) ? 1 : 0
+      const fb = follows.has(b.slug) ? 1 : 0
+      return (fb - fa) || (b.upcoming - a.upcoming)
+    })
+
+    if (!q) shown = shown.slice(0, 80)
+
+    chips.innerHTML = shown.length
+      ? shown.map(o => `
+          <button class="chip ${follows.has(o.slug) ? 'on' : ''}" data-slug="${esc(o.slug)}">
+            ${esc(o.name)}<span class="n">${o.upcoming}</span>
+          </button>`).join('')
+      : '<p class="sub">No clubs match that.</p>'
+
+    done.textContent = follows.size ? `See my feed (${follows.size})` : 'Pick at least one club'
+    done.disabled = follows.size === 0
+  }
+
+  chips.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.chip')
+    if (!btn) return
+
+    const slug = btn.dataset.slug
+    if (follows.has(slug)) follows.delete(slug)
+    else follows.add(slug)
+
+    saveFollows()
+    updateFollowCount()
+    paint()
+  })
+
+  search.addEventListener('input', paint)
+  done.addEventListener('click', () => go('feed'))
+
+  paint()
+}
+
+async function showFeed() {
+  if (follows.size === 0) return showClubs()
+
+  screenEl.innerHTML = '<p class="status">Loading&hellip;</p>'
+
+  const qs = encodeURIComponent([...follows].join(','))
+  const { events } = await getJson('/events?orgs=' + qs)
+
+  screenEl.innerHTML = `
+    <div class="head">
+      <div>
+        <h2>My feed</h2>
+        <p class="sub">${events.length} upcoming from ${follows.size} club${follows.size === 1 ? '' : 's'}</p>
+      </div>
+      <button class="ghost" id="edit">Edit clubs</button>
+    </div>
+    <input class="field" id="q" type="search" placeholder="Search your events&hellip;">
+    <div id="list"></div>
+  `
+
+  document.getElementById('edit').addEventListener('click', showClubs)
+
+  const list = document.getElementById('list')
+
+  function paint(items) {
+    if (items.length) {
+      list.innerHTML = eventListHtml(items)
+      return
+    }
+
+    list.innerHTML = `
+      <div class="status">
+        Nothing coming up from your clubs.<br>
+        <button class="primary" id="toExplore">Explore all events</button>
+      </div>`
+
+    document.getElementById('toExplore').addEventListener('click', () => go('explore'))
+  }
+
+  document.getElementById('q').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase()
+    paint(q ? events.filter(x => matches(x, q)) : events)
+  })
+
+  paint(events)
+}
+
+async function showExplore() {
+  screenEl.innerHTML = '<p class="status">Loading&hellip;</p>'
+
+  const { events } = await getJson('/events')
+
+  screenEl.innerHTML = `
+    <div class="head">
+      <div>
+        <h2>Explore</h2>
+        <p class="sub">Everything happening at Cornell</p>
+      </div>
+      <button class="ghost" id="edit">Edit clubs</button>
+    </div>
+    <input class="field" id="q" type="search" placeholder="Search events, clubs, places&hellip;">
+    <div id="list"></div>
+  `
+
+  document.getElementById('edit').addEventListener('click', showClubs)
+
+  const list = document.getElementById('list')
+  list.innerHTML = eventListHtml(events)
+
+  document.getElementById('q').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase()
+    const items = q ? events.filter(x => matches(x, q)) : events
+    list.innerHTML = items.length ? eventListHtml(items) : '<p class="status">Nothing found.</p>'
+  })
+}
+
+function showSubscribe() {
+  const qs = follows.size ? '?orgs=' + encodeURIComponent([...follows].join(',')) : ''
+  const feedUrl = location.origin + '/calendar.ics' + qs
+  const isLocal = /localhost|127\.0\.0\.1|^http:\/\/192\.168\./.test(location.origin)
+
+  screenEl.innerHTML = `
+    <div class="head">
+      <div>
+        <h2>Subscribe</h2>
+        <p class="sub">${follows.size
+          ? `Your ${follows.size} club${follows.size === 1 ? '' : 's'}, kept in sync automatically.`
+          : 'Everything at Cornell, kept in sync automatically.'}</p>
+      </div>
+      <button class="ghost" id="edit">Edit clubs</button>
+    </div>
+
+    ${isLocal ? `
+      <div class="note">
+        This link points at your own computer, so Google's servers can't reach it yet.
+        Subscribing will only work once the app is deployed somewhere public.
+        The <b>+ Google Calendar</b> button on each event works right now though.
+      </div>` : ''}
+
+    <div class="urlrow">
+      <input id="feedUrl" readonly value="${esc(feedUrl)}">
+      <button class="primary" id="copy">Copy</button>
+    </div>
+
+    <h3>Google Calendar</h3>
+    <ol class="steps">
+      <li>Open Google Calendar on a computer</li>
+      <li>In the left sidebar, next to <b>Other calendars</b>, click <b>+</b></li>
+      <li>Choose <b>From URL</b></li>
+      <li>Paste the link above and click <b>Add calendar</b></li>
+    </ol>
+
+    <h3>Apple Calendar</h3>
+    <ol class="steps">
+      <li><b>File</b> &rarr; <b>New Calendar Subscription</b></li>
+      <li>Paste the link, set auto-refresh to every hour</li>
+    </ol>
+
+    <p class="sub">
+      Subscribed calendars update on their own - Google usually re-checks every
+      few hours. Changing your clubs here gives you a new link, so you'd
+      re-subscribe with the new one.
+    </p>
+  `
+
+  document.getElementById('edit').addEventListener('click', showClubs)
+
+  document.getElementById('copy').addEventListener('click', async () => {
+    const btn = document.getElementById('copy')
+    const input = document.getElementById('feedUrl')
+
+    try {
+      await navigator.clipboard.writeText(input.value)
+      btn.textContent = 'Copied'
+    } catch {
+      // Clipboard access can be blocked; fall back to selecting the text.
+      input.select()
+      btn.textContent = 'Press Ctrl+C'
+    }
+
+    setTimeout(() => { btn.textContent = 'Copy' }, 2000)
+  })
+}
+
+// ---------------------------------------------------------------- navigation
+
+function updateFollowCount() {
+  document.getElementById('followCount').textContent = follows.size || ''
+}
+
+function go(next) {
+  for (const b of document.querySelectorAll('.navbtn')) {
+    b.classList.toggle('on', b.dataset.view === next)
+  }
+
+  closeSidebar()
+
+  if (next === 'explore') showExplore()
+  else if (next === 'subscribe') showSubscribe()
+  else showFeed()
+}
+
+function closeSidebar() {
+  sidebar.classList.remove('open')
+  backdrop.classList.remove('show')
+}
+
+document.getElementById('hamburger').addEventListener('click', () => {
+  sidebar.classList.add('open')
+  backdrop.classList.add('show')
+})
+
+backdrop.addEventListener('click', closeSidebar)
+
+for (const b of document.querySelectorAll('.navbtn')) {
+  b.addEventListener('click', () => go(b.dataset.view))
+}
+
+// ---------------------------------------------------------------- start
+
+try {
+  const data = await getJson('/orgs')
+  orgs = data.orgs ?? []
+  updateFollowCount()
+  go('feed')
+} catch (err) {
+  screenEl.innerHTML = `
+    <div class="status">
+      Couldn't load: ${esc(err.message)}<br>
+      Is the server running, and did you restart it after the last code change?<br>
+      <code>npx tsx src/api.ts</code>
+    </div>`
+  console.error(err)
+}
+</script>
+</body>
+</html>
