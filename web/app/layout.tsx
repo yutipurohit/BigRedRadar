@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     type: 'website',
     title: 'Big Red Radar',
     description: 'Every Cornell club event, in one place.',
-    images: ['/og.png'],
+    images: ['/og-v2.png'],
   },
   twitter: { card: 'summary_large_image' },
   icons: {

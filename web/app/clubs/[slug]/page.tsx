@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: `${name} · Big Red Radar`,
       description: `Upcoming events from ${name} at Cornell.`,
-      images: ['/og.png'],
+      images: ['/og-v2.png'],
     },
   }
 }
