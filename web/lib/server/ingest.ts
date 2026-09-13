@@ -1,15 +1,8 @@
-// The pipeline: for each source - fetch, clean, save, retire what vanished.
-//
-// Two ways to use this file:
-//   npm run ingest                 run it by hand
-//   import { runIngest }           call it from the refresh route
-
 import { sql } from './db'
 import { fetchAllLocalist, LOCALIST_FEED } from './sources/localist'
 import type { ParsedEvent } from './sources/localist'
 import { fetchCampusGroups, CAMPUSGROUPS_FEED } from './sources/campusgroups'
 
-// "Cornell Data Science" -> "cornell-data-science"
 function slugify(name: string): string {
   const s = name
     .toLowerCase()
@@ -76,11 +69,6 @@ async function saveEvents(rows: Record<string, unknown>[]) {
   }
 }
 
-// Anything still in the future that this source has stopped listing has
-// probably been pulled. Retire it rather than leaving a ghost.
-//
-// This runs AFTER saving, so everything still in the feed has just had its
-// last_seen_at bumped to now and is safely excluded.
 async function retireVanished(sourceId: number): Promise<number> {
   const rows = await sql`
     update events
@@ -136,7 +124,6 @@ export async function runIngest(log = console.log): Promise<IngestResult> {
     try {
       events = await src.load()
     } catch (err) {
-      // One broken source must not kill the whole run.
       const msg = (err as Error).message
       result.error = msg
       results.push(result)
@@ -152,8 +139,6 @@ export async function runIngest(log = console.log): Promise<IngestResult> {
 
     result.parsed = events.length
 
-    // A feed can list the same id twice. Postgres refuses to update the same
-    // row twice in one statement, so drop repeats before we batch them up.
     const seen = new Set<string>()
     const unique = events.filter((e) => {
       if (seen.has(e.externalId)) return false
@@ -182,8 +167,6 @@ export async function runIngest(log = console.log): Promise<IngestResult> {
     await saveEvents(rows)
     result.saved = rows.length
 
-    // Only retire things if this run actually brought back a real haul.
-    // A feed that returns two events today must not cancel a thousand.
     if (rows.length > 10) {
       result.retired = await retireVanished(sourceId)
     }

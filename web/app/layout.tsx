@@ -8,8 +8,12 @@ const display = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' }
 const text = Inter({ subsets: ['latin'], variable: '--font-text' })
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
+const site = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : 'http://localhost:3000'
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://bigredradar.onrender.com'),
+  metadataBase: new URL(site),
   title: 'Big Red Radar',
   description: "Every Cornell club event, in one place. Follow the clubs you care about and see what's on.",
   openGraph: {
