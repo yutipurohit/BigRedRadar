@@ -1,18 +1,90 @@
 import Fastify from 'fastify'
 import fastifyStatic from '@fastify/static'
+import fastifyCookie from '@fastify/cookie'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { sql } from './db'
 import { buildIcs } from './ics'
 import { runIngest } from './ingest'
 import type { IngestResult } from './ingest'
+import {
+  COOKIE_NAME,
+  SESSION_DAYS,
+  googleClientId,
+  signInWithGoogle,
+  userFromToken,
+  signOut,
+  getFollows,
+  setFollows,
+} from './auth'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 
 const app = Fastify({ logger: true })
 
+app.register(fastifyCookie)
+
 app.register(fastifyStatic, {
   root: path.join(here, '..', 'public'),
+})
+
+function cookieOptions(req: any) {
+  return {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: req.protocol === 'https',
+    path: '/',
+    maxAge: SESSION_DAYS * 24 * 60 * 60,
+  }
+}
+
+app.get('/session', async (req) => {
+  const user = await userFromToken(req.cookies[COOKIE_NAME])
+
+  return {
+    googleClientId: googleClientId(),
+    user,
+    follows: user ? await getFollows(user.id) : [],
+  }
+})
+
+app.post('/auth/google', async (req, reply) => {
+  const credential = (req.body as { credential?: string })?.credential
+
+  if (!credential) {
+    return reply.code(400).send({ error: 'missing credential' })
+  }
+
+  try {
+    const { user, token } = await signInWithGoogle(credential)
+    reply.setCookie(COOKIE_NAME, token, cookieOptions(req))
+    return { user, follows: await getFollows(user.id) }
+  } catch (err) {
+    app.log.error(err)
+    return reply.code(401).send({ error: 'sign in failed' })
+  }
+})
+
+app.post('/auth/logout', async (req, reply) => {
+  await signOut(req.cookies[COOKIE_NAME])
+  reply.clearCookie(COOKIE_NAME, { path: '/' })
+  return { ok: true }
+})
+
+app.put('/subscriptions', async (req, reply) => {
+  const user = await userFromToken(req.cookies[COOKIE_NAME])
+
+  if (!user) {
+    return reply.code(401).send({ error: 'not signed in' })
+  }
+
+  const slugs = (req.body as { slugs?: unknown })?.slugs
+
+  if (!Array.isArray(slugs)) {
+    return reply.code(400).send({ error: 'slugs must be a list' })
+  }
+
+  return { follows: await setFollows(user.id, slugs as string[]) }
 })
 
 app.get('/health', async () => {

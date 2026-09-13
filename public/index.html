@@ -21,6 +21,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@500&display=swap">
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <style>
   :root {
     --red:     #a81c1c;
@@ -66,21 +68,43 @@
   .app { display: flex; min-height: 100vh; }
 
   .sidebar {
+    display: flex;
+    flex-direction: column;
     width: 238px;
     flex-shrink: 0;
     padding: 34px 22px 34px 30px;
     background: var(--surface);
   }
 
-  .brand { display: flex; align-items: center; gap: 11px; }
-  .brand svg { flex-shrink: 0; color: var(--red); }
+  .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
+  .brand .logo { flex-shrink: 0; color: var(--red); }
+
+  .burger {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 6px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--faint);
+    line-height: 0;
+  }
+  .burger:hover { color: var(--ink); background: var(--raised); }
 
   .wordmark {
-    font: 700 17px/1.05 var(--display);
-    letter-spacing: -0.025em;
+    font: 500 10px/1 var(--mono);
+    letter-spacing: 0.33em;
     text-transform: uppercase;
+    color: var(--red);
   }
-  .wordmark em { display: block; font-style: normal; color: var(--red); }
+  .wordmark em {
+    display: block;
+    margin-top: 5px;
+    font: 700 23px/1 var(--display);
+    font-style: normal;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
 
   .tagline {
     margin: 15px 0 32px;
@@ -110,22 +134,65 @@
   .navbtn .lbl { flex: 1; }
   .navbtn .count { font: 500 11px/1.7 var(--mono); opacity: 0.6; }
 
-  .collapse { margin-top: 22px; color: var(--faint); }
-  .collapse .ic { transition: transform 0.18s; }
+
+  .account {
+    position: fixed;
+    top: 14px;
+    right: 20px;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 4px;
+    background: var(--surface);
+    border-radius: 999px;
+  }
+  .who img { width: 24px; height: 24px; border-radius: 50%; }
+  .who .nm {
+    max-width: 140px;
+    font-size: 13px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .signout {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--faint);
+    font: 500 10px/1.4 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .signout:hover { color: var(--red); }
+
+  @media (max-width: 620px) {
+    .account { top: 12px; right: 14px; }
+    .who .nm { display: none; }
+    .who { padding: 4px; }
+  }
 
   @media (min-width: 801px) {
     .app.collapsed .sidebar { width: 66px; padding-left: 13px; padding-right: 13px; }
     .app.collapsed .brand { justify-content: center; }
     .app.collapsed .wordmark,
     .app.collapsed .tagline,
+    .app.collapsed .logo,
     .app.collapsed .lbl,
     .app.collapsed .count { display: none; }
     .app.collapsed .navbtn { justify-content: center; padding: 10px 0; }
-    .app.collapsed .tagline { margin: 0; }
-    .app.collapsed .collapse .ic { transform: rotate(180deg); }
-    .app.collapsed .brand { margin-bottom: 26px; }
+    .app.collapsed .burger { margin: 0 auto; }
+    .app.collapsed .brand { margin-bottom: 22px; }
   }
-  @media (max-width: 800px) { .collapse { display: none; } }
+  @media (max-width: 800px) { .burger { display: none; } }
 
   .main { flex: 1; min-width: 0; padding: 0 26px 100px; }
   .inner { max-width: 690px; margin: 0 auto; }
@@ -139,8 +206,13 @@
     color: var(--ink);
     line-height: 1.2;
   }
-  .topbar .wordmark { font-size: 14px; }
-  .topbar .wordmark em { display: inline; }
+  .topbar .wordmark { font-size: 15px; }
+  .topbar .wordmark em {
+    display: inline;
+    margin: 0 0 0 6px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
 
   .backdrop { display: none; }
 
@@ -409,7 +481,7 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
+      <svg class="logo" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
         <defs>
           <radialGradient id="sweep1" cx="32" cy="32" r="28" gradientUnits="userSpaceOnUse">
             <stop offset="0" stop-color="currentColor" stop-opacity=".95"/>
@@ -425,14 +497,21 @@
         <circle cx="32" cy="32" r="4.6" fill="currentColor"/>
       </svg>
       <div class="wordmark">Big Red<em>Radar</em></div>
+
+      <button class="burger" id="collapse" aria-label="Collapse menu">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+          <path d="M2.5 4h11M2.5 8h11M2.5 12h11"/>
+        </svg>
+      </button>
     </div>
 
     <p class="tagline">Every Cornell club event, in one place.</p>
 
     <button class="navbtn" data-view="feed">
       <svg class="ic" width="16" height="16" viewBox="0 0 16 16" fill="none"
-           stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
-        <path d="M3 4h10M3 8h10M3 12h6"/>
+           stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 2.5h8v11l-4-3-4 3z"/>
       </svg>
       <span class="lbl">My Feed</span>
       <span class="count" id="followCount"></span>
@@ -447,16 +526,11 @@
       <span class="lbl">Explore</span>
     </button>
 
-    <button class="navbtn collapse" id="collapse" aria-label="Collapse menu">
-      <svg class="ic" width="16" height="16" viewBox="0 0 16 16" fill="none"
-           stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M9.5 4 5.5 8l4 4"/>
-      </svg>
-      <span class="lbl">Collapse</span>
-    </button>
   </aside>
 
   <div class="backdrop" id="backdrop"></div>
+
+  <div class="account" id="account"></div>
 
   <main class="main">
     <div class="inner">
@@ -486,6 +560,8 @@ const backdrop = document.getElementById('backdrop')
 
 let orgs = []
 let follows = loadFollows()
+let me = null
+let clientId = ''
 
 function loadFollows() {
   try { return new Set(JSON.parse(localStorage.getItem('brr.follows') || '[]')) }
@@ -495,6 +571,90 @@ function loadFollows() {
 function saveFollows() {
   try { localStorage.setItem('brr.follows', JSON.stringify([...follows])) }
   catch {}
+  pushFollows()
+}
+
+async function pushFollows() {
+  if (!me) return
+
+  try {
+    await fetch('/subscriptions', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slugs: [...follows] }),
+    })
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+function paintAccount() {
+  const box = document.getElementById('account')
+
+  if (me) {
+    box.innerHTML = `
+      <div class="who">
+        ${me.picture_url ? `<img src="${esc(me.picture_url)}" alt="">` : ''}
+        <span class="nm">${esc(me.name || me.email)}</span>
+      </div>
+      <button class="signout" id="signout">Sign out</button>`
+
+    document.getElementById('signout').addEventListener('click', doSignOut)
+    return
+  }
+
+  box.innerHTML = '<div id="gbtn"></div>'
+  renderGoogleButton()
+}
+
+function renderGoogleButton(tries = 0) {
+  const el = document.getElementById('gbtn')
+  if (!el || !clientId) return
+
+  if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+    if (tries < 40) setTimeout(() => renderGoogleButton(tries + 1), 150)
+    return
+  }
+
+  window.google.accounts.id.initialize({ client_id: clientId, callback: onGoogleCredential })
+  window.google.accounts.id.renderButton(el, {
+    theme: 'outline',
+    size: 'medium',
+    text: 'signin_with',
+    width: 190,
+  })
+}
+
+async function onGoogleCredential(response) {
+  try {
+    const res = await fetch('/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential }),
+    })
+
+    if (!res.ok) throw new Error('sign in failed')
+
+    const data = await res.json()
+    me = data.user
+
+    for (const slug of data.follows) follows.add(slug)
+
+    saveFollows()
+    updateFollowCount()
+    paintAccount()
+    go('feed')
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function doSignOut() {
+  try { await fetch('/auth/logout', { method: 'POST' }) }
+  catch (err) { console.error(err) }
+
+  me = null
+  paintAccount()
 }
 
 const ITHACA = 'America/New_York'
@@ -714,7 +874,7 @@ function mountBrowser(root, events) {
 }
 
 function showClubs() {
-  const first = follows.size === 0
+  const first = followedCount() === 0
 
   if (orgs.length === 0) {
     screenEl.innerHTML = `<div class="status">No clubs in the database yet.<br><code>npx tsx src/ingest.ts</code></div>`
@@ -755,8 +915,10 @@ function showClubs() {
   function paintCats() {
     let html = `<button class="pill ${picks.size ? '' : 'on'}" data-cat="all">All<span class="n">${orgs.length}</span></button>`
 
-    if (follows.size) {
-      html += `<button class="pill ${picks.has('following') ? 'on' : ''}" data-cat="following">Following<span class="n">${follows.size}</span></button>`
+    const nFollowed = followedCount()
+
+    if (nFollowed) {
+      html += `<button class="pill ${picks.has('following') ? 'on' : ''}" data-cat="following">Following<span class="n">${nFollowed}</span></button>`
     }
 
     for (const [key, label] of CATEGORIES) {
@@ -791,8 +953,10 @@ function showClubs() {
       ? list.map(chipHtml).join('')
       : '<p class="sub">Nothing here.</p>'
 
-    done.textContent = follows.size ? `See My Feed (${follows.size})` : 'Pick At Least One'
-    done.disabled = follows.size === 0
+    const n = followedCount()
+
+    done.textContent = n ? `See My Feed (${n})` : 'Pick At Least One'
+    done.disabled = n === 0
   }
 
   cats.addEventListener('click', (ev) => {
@@ -913,11 +1077,11 @@ async function showEvents({ title, sub, url, categories = false }) {
 }
 
 function showFeed() {
-  if (follows.size === 0) return showClubs()
+  if (followedCount() === 0) return showClubs()
 
   return showEvents({
     title: 'My Feed',
-    sub: (ev) => `${ev.length} upcoming | ${follows.size} club${follows.size === 1 ? '' : 's selected'}`,
+    sub: (ev) => `${ev.length} upcoming | ${followedCount()} club${followedCount() === 1 ? '' : 's selected'}`,
     url: '/events?orgs=' + encodeURIComponent([...follows].join(',')),
   })
 }
@@ -931,8 +1095,12 @@ function showExplore() {
   })
 }
 
+function followedCount() {
+  return orgs.filter(o => follows.has(o.slug)).length
+}
+
 function updateFollowCount() {
-  document.getElementById('followCount').textContent = follows.size || ''
+  document.getElementById('followCount').textContent = followedCount() || ''
 }
 
 function go(next) {
@@ -976,9 +1144,19 @@ document.getElementById('collapse').addEventListener('click', () => {
 })
 
 try {
-  const data = await getJson('/orgs')
-  orgs = data.orgs ?? []
+  const [orgData, session] = await Promise.all([getJson('/orgs'), getJson('/session')])
+
+  orgs = orgData.orgs ?? []
+  clientId = session.googleClientId || ''
+  me = session.user || null
+
+  if (me) {
+    follows = new Set(session.follows || [])
+    try { localStorage.setItem('brr.follows', JSON.stringify([...follows])) } catch {}
+  }
+
   updateFollowCount()
+  paintAccount()
   go('feed')
 } catch (err) {
   screenEl.innerHTML = `<div class="status">Couldn't load: ${esc(err.message)}<br><code>npx tsx src/api.ts</code></div>`
