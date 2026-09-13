@@ -590,9 +590,11 @@ function gcalUrl(e) {
 function rowHtml(e) {
   const when = new Date(e.starts_at)
 
-  const time = e.all_day
-    ? '<div class="time allday">All Day</div>'
-    : `<div class="time">${fmtTime.format(when)}</div>`
+  const time = e.time_tba
+    ? '<div class="time allday">Time TBA</div>'
+    : e.all_day
+      ? '<div class="time allday">All Day</div>'
+      : `<div class="time">${fmtTime.format(when)}</div>`
 
   const where = e.location ? ` <span class="where">&middot; ${esc(e.location)}</span>` : ''
 
@@ -859,12 +861,12 @@ async function showEvents({ title, sub, url, categories = false }) {
   function paintCats() {
     if (!cats) return
 
-    let html = `<button class="pill ${picks.size ? '' : 'on'}" data-cat="all">All<span class="n">${events.length}</span></button>`
+    let html = `<button class="pill ${picks.size ? '' : 'on'}" data-cat="all">All</button>`
 
     for (const [key, label] of CATEGORIES) {
       const n = events.filter(e => e.org_category === key).length
       if (!n) continue
-      html += `<button class="pill ${picks.has(key) ? 'on' : ''}" data-cat="${key}">${label}<span class="n">${n}</span></button>`
+      html += `<button class="pill ${picks.has(key) ? 'on' : ''}" data-cat="${key}">${label}</button>`
     }
 
     cats.innerHTML = html

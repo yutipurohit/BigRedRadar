@@ -53,7 +53,7 @@ app.get('/events', async (req) => {
 
   const rows = await sql`
     select
-      e.id, e.title, e.starts_at, e.ends_at, e.all_day,
+      e.id, e.title, e.starts_at, e.ends_at, e.all_day, e.time_tba,
       e.location, e.url, e.image_url,
       -- trimmed: the page only needs enough to prefill a calendar entry
       left(e.description, 400) as description,
@@ -61,11 +61,12 @@ app.get('/events', async (req) => {
     from events e
     join organizations o on o.id = e.org_id
     where e.starts_at > now()
+      and e.starts_at < now() + interval '60 days'
       and e.status = 'scheduled'
       and o.is_active
       ${slugs ? sql`and o.slug = any(${slugs})` : sql``}
     order by e.starts_at
-    limit 500
+    limit 4000
   `
 
   return { events: rows }
