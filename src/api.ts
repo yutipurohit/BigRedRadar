@@ -1,6 +1,3 @@
-// Layer 2: the door. Thin on purpose - it takes requests, asks the database,
-// hands back answers. No real thinking happens here.
-// Run with:  npx tsx src/api.ts
 
 import Fastify from 'fastify'
 import fastifyStatic from '@fastify/static'
@@ -19,13 +16,10 @@ app.register(fastifyStatic, {
   root: path.join(here, '..', 'public'),
 })
 
-// "Am I alive?" - check this first when something breaks.
-// Also reports the last refresh, so one cheap request tells you everything.
 app.get('/health', async () => {
   return { ok: true, refreshing, lastRefresh }
 })
 
-// Every club that has something coming up, most active first.
 app.get('/orgs', async () => {
   const rows = await sql`
     select
@@ -45,7 +39,6 @@ app.get('/orgs', async () => {
   return { orgs: rows }
 })
 
-// ?orgs=slug-one,slug-two  narrows to those clubs. Leave it off for everything.
 function parseSlugs(query: unknown): string[] | null {
   const raw = (query as { orgs?: string })?.orgs
   if (!raw) return null
@@ -76,7 +69,6 @@ app.get('/events', async (req) => {
   return { events: rows }
 })
 
-// The subscribable calendar. This is the whole point of the app.
 app.get('/calendar.ics', async (req, reply) => {
   const slugs = parseSlugs(req.query)
 
@@ -103,9 +95,6 @@ app.get('/calendar.ics', async (req, reply) => {
   return buildIcs(rows as any, name)
 })
 
-// ---------------------------------------------------------------------------
-// Refresh. An outside timer calls this on a schedule to keep the data current.
-
 type RefreshRecord = {
   startedAt: string
   finishedAt?: string
@@ -113,7 +102,6 @@ type RefreshRecord = {
   error?: string
 }
 
-// An ingest takes a while; don't let two overlap.
 let refreshing = false
 let lastRefresh: RefreshRecord | null = null
 
@@ -140,11 +128,6 @@ async function handleRefresh(req: any, reply: any) {
   const record: RefreshRecord = { startedAt: new Date().toISOString() }
   lastRefresh = record
 
-  // Start the work but do NOT wait for it. The caller gets an answer in
-  // milliseconds; the ingest carries on in the background.
-  //
-  // A promise nobody waits on still needs .catch(), or a failure becomes an
-  // unhandled rejection and takes the whole process down.
   runIngest((msg) => app.log.info(msg))
     .then((result) => {
       record.result = result
@@ -162,9 +145,8 @@ async function handleRefresh(req: any, reply: any) {
 }
 
 app.post('/tasks/refresh', handleRefresh)
-app.get('/tasks/refresh', handleRefresh)   // so a simple cron ping can call it
+app.get('/tasks/refresh', handleRefresh)   
 
-// A host picks the port for you and passes it in. Fall back to 3000 locally.
 const port = Number(process.env.PORT ?? 3000)
 
 app.listen({ port, host: '0.0.0.0' }, (err, address) => {
