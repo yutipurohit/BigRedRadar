@@ -1,7 +1,5 @@
-const SERVER_BASE = process.env.API_BASE ?? 'https://bigredradar.onrender.com'
-
 export function apiUrl(path: string) {
-  return typeof window === 'undefined' ? `${SERVER_BASE}${path}` : `/api${path}`
+  return `/api${path}`
 }
 
 export async function apiGet<T>(path: string): Promise<T> {

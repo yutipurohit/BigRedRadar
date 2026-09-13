@@ -1,20 +1,10 @@
 import ClubView from '@/components/ClubView'
-import { apiGet } from '@/lib/api'
-import type { Org } from '@/lib/types'
-
-async function findOrg(slug: string) {
-  try {
-    const data = await apiGet<{ orgs: Org[] }>('/orgs')
-    return data.orgs.find((o) => o.slug === slug) ?? null
-  } catch {
-    return null
-  }
-}
+import { findOrg } from '@/lib/server/queries'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const org = await findOrg(slug)
-  const name = org?.name ?? 'Club'
+  const name = org ? String(org.name) : 'Club'
 
   return {
     title: `${name} · Big Red Radar`,
@@ -31,5 +21,5 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const org = await findOrg(slug)
 
-  return <ClubView slug={slug} name={org?.name ?? slug} />
+  return <ClubView slug={slug} name={org ? String(org.name) : slug} />
 }
