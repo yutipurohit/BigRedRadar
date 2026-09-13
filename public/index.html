@@ -3,33 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Big Red Radar</title>
+<meta name="description" content="Every Cornell club event, in one place. Follow the clubs you care about and see what's on.">
+<meta name="theme-color" content="#b31b1b">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Big Red Radar">
+<meta property="og:description" content="Every Cornell club event, in one place.">
+<meta property="og:url" content="https://bigredradar.onrender.com/">
+<meta property="og:image" content="https://bigredradar.onrender.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23e82820' stroke-width='5'%3E%3Ccircle cx='32' cy='32' r='27'/%3E%3Ccircle cx='32' cy='32' r='17.5'/%3E%3Ccircle cx='32' cy='32' r='8.5'/%3E%3C/g%3E%3Cpath d='M32 32 51.1 12.9A27 27 0 0 1 57.4 22.8Z' fill='%23e82820' opacity='.55'/%3E%3Ccircle cx='32' cy='32' r='4.5' fill='%23e82820'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@500&display=swap">
+
 <style>
   :root {
-    --red: #b31b1b;
-    --red-soft: #b31b1b14;
-    --bg: #faf9f7;
-    --card: #ffffff;
-    --text: #1a1a1a;
-    --muted: #6b6b6b;
-    --line: #e5e2dd;
-    --sidebar: #f3f1ee;
-    --warn: #8a5a00;
-    --warn-bg: #fff6e0;
+    --red:     #a81c1c;
+    --bg:      #f7f5f1;
+    --surface: #efebe4;
+    --raised:  #fffefc;
+    --ink:     #191817;
+    --muted:   #78726a;
+    --faint:   #a8a199;
+    --tick:    #ded7cb;
+
+    --display: 'Space Grotesk', system-ui, sans-serif;
+    --text:    'Inter', system-ui, sans-serif;
+    --mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --red: #f05252;
-      --red-soft: #f0525220;
-      --bg: #141413;
-      --card: #1e1e1c;
-      --text: #f0efed;
-      --muted: #9a9894;
-      --line: #2e2e2b;
-      --sidebar: #1a1a18;
-      --warn: #f0c060;
-      --warn-bg: #2a2415;
+      --red:     #e8574a;
+      --bg:      #121110;
+      --surface: #1c1b19;
+      --raised:  #232220;
+      --ink:     #f2efea;
+      --muted:   #948d84;
+      --faint:   #635d56;
+      --tick:    #302d29;
     }
   }
 
@@ -38,197 +55,351 @@
   body {
     margin: 0;
     background: var(--bg);
-    color: var(--text);
-    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    font: 400 15px/1.55 var(--text);
+    -webkit-font-smoothing: antialiased;
   }
 
   button { font: inherit; cursor: pointer; }
   a { color: inherit; }
 
-
   .app { display: flex; min-height: 100vh; }
 
   .sidebar {
-    width: 230px;
+    width: 238px;
     flex-shrink: 0;
-    padding: 24px 16px;
-    background: var(--sidebar);
-    border-right: 1px solid var(--line);
+    padding: 34px 22px 34px 30px;
+    background: var(--surface);
   }
 
-  .brand { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 24px; }
-  .brand span { color: var(--red); }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand svg { flex-shrink: 0; color: var(--red); }
+
+  .wordmark {
+    font: 700 17px/1.05 var(--display);
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+  .wordmark em { display: block; font-style: normal; color: var(--red); }
+
+  .tagline {
+    margin: 15px 0 32px;
+    padding-right: 20px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--faint);
+  }
 
   .navbtn {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 9px 12px;
-    margin-bottom: 4px;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--text);
-    font-size: 15px;
-  }
-  .navbtn:hover { background: var(--red-soft); }
-  .navbtn.on { background: var(--red); color: #fff; font-weight: 600; }
-  .navbtn .count { float: right; opacity: 0.6; font-size: 13px; }
-
-  .main { flex: 1; min-width: 0; padding: 0 20px 80px; }
-  .inner { max-width: 660px; margin: 0 auto; }
-
-  .topbar {
-    display: none;
+    display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--line);
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--muted);
+    font: 500 14px/1.5 var(--text);
+    text-align: left;
   }
+  .navbtn:hover { background: var(--raised); color: var(--ink); }
+  .navbtn.on { background: var(--red); color: #fff; font-weight: 600; }
+  .navbtn .ic { flex-shrink: 0; }
+  .navbtn .lbl { flex: 1; }
+  .navbtn .count { font: 500 11px/1.7 var(--mono); opacity: 0.6; }
+
+  .collapse { margin-top: 22px; color: var(--faint); }
+  .collapse .ic { transition: transform 0.18s; }
+
+  @media (min-width: 801px) {
+    .app.collapsed .sidebar { width: 66px; padding-left: 13px; padding-right: 13px; }
+    .app.collapsed .brand { justify-content: center; }
+    .app.collapsed .wordmark,
+    .app.collapsed .tagline,
+    .app.collapsed .lbl,
+    .app.collapsed .count { display: none; }
+    .app.collapsed .navbtn { justify-content: center; padding: 10px 0; }
+    .app.collapsed .tagline { margin: 0; }
+    .app.collapsed .collapse .ic { transform: rotate(180deg); }
+    .app.collapsed .brand { margin-bottom: 26px; }
+  }
+  @media (max-width: 800px) { .collapse { display: none; } }
+
+  .main { flex: 1; min-width: 0; padding: 0 26px 100px; }
+  .inner { max-width: 690px; margin: 0 auto; }
+
+  .topbar { display: none; align-items: center; gap: 13px; padding: 14px 0 4px; }
   .hamburger {
-    padding: 6px 11px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--card);
-    color: var(--text);
+    padding: 4px 9px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.2;
   }
+  .topbar .wordmark { font-size: 14px; }
+  .topbar .wordmark em { display: inline; }
 
   .backdrop { display: none; }
 
-  @media (max-width: 760px) {
+  @media (max-width: 800px) {
     .topbar { display: flex; }
     .sidebar {
       position: fixed; top: 0; left: 0; bottom: 0; z-index: 20;
       transform: translateX(-100%);
-      transition: transform 0.18s ease;
+      transition: transform 0.16s ease;
     }
     .sidebar.open { transform: none; }
     .backdrop.show {
       display: block;
       position: fixed; inset: 0; z-index: 10;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.45);
     }
   }
-
 
   .head {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 12px;
-    margin: 24px 0 16px;
+    gap: 16px;
+    padding: 36px 0 18px;
   }
-  .head h2 { margin: 0 0 2px; font-size: 22px; letter-spacing: -0.02em; }
-  .head .sub { margin: 0; color: var(--muted); font-size: 15px; }
+  .head h2 {
+    margin: 0;
+    font: 700 32px/1.05 var(--display);
+    letter-spacing: -0.035em;
+  }
+  .head .sub { margin: 7px 0 0; font-size: 13px; color: var(--muted); }
 
   .ghost {
     flex-shrink: 0;
-    display: inline-block;
-    padding: 8px 14px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--card);
-    color: var(--text);
-    font-size: 14px;
+    padding: 7px 13px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--muted);
+    font: 500 11px/1.4 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     white-space: nowrap;
-    text-decoration: none;
   }
-  .ghost:hover { border-color: var(--red); color: var(--red); }
+  .ghost:hover { color: var(--red); }
 
   .field {
     width: 100%;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    font: inherit;
-    color: var(--text);
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 10px;
+    padding: 11px 14px;
+    font: 400 14.5px/1.5 var(--text);
+    color: var(--ink);
+    background: var(--surface);
+    border: 0;
+    border-radius: 4px;
   }
-  .field:focus { outline: 2px solid var(--red); outline-offset: -1px; }
+  .field::placeholder { color: var(--faint); }
+  .field:focus { outline: 2px solid var(--red); outline-offset: -2px; }
 
   .primary {
-    padding: 11px 20px;
+    padding: 12px 22px;
     border: 0;
-    border-radius: 10px;
+    border-radius: 4px;
     background: var(--red);
     color: #fff;
-    font-weight: 600;
+    font: 600 14px/1.2 var(--text);
   }
-  .primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .primary:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
 
+  .pills {
+    display: flex;
+    gap: 20px;
+    margin-top: 18px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pills::-webkit-scrollbar { display: none; }
+
+  .pill {
+    flex: 0 0 auto;
+    padding: 5px 0 7px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: none;
+    color: var(--faint);
+    font: 500 10.5px/1.4 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .pill:hover { color: var(--muted); }
+  .pill.on { color: var(--ink); border-bottom-color: var(--red); }
+  .pill .n { margin-left: 5px; opacity: 0.45; }
   .chip {
-    padding: 7px 13px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--card);
-    color: var(--text);
-    font-size: 14px;
+    padding: 7px 12px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--muted);
+    font: 450 13px/1.35 var(--text);
   }
-  .chip:hover { border-color: var(--red); }
-  .chip.on { background: var(--red); border-color: var(--red); color: #fff; font-weight: 600; }
-  .chip .n { opacity: 0.55; margin-left: 5px; font-size: 12px; }
+  .chip:hover { background: var(--raised); color: var(--ink); }
+  .chip.on { background: var(--red); color: #fff; font-weight: 600; }
+  .chip .n { margin-left: 6px; font: 500 10px/1 var(--mono); opacity: 0.5; }
 
   .bar {
     position: sticky; bottom: 0;
-    padding: 16px 0;
-    background: linear-gradient(transparent, var(--bg) 35%);
+    padding: 18px 0;
+    background: linear-gradient(transparent, var(--bg) 38%);
   }
 
-  .daylabel {
-    position: sticky; top: 0;
-    padding: 16px 0 8px;
+  .daystrip {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    gap: 0;
+    margin: 26px 0 0;
+    padding: 0 0 14px;
     background: var(--bg);
-    font-size: 13px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.06em;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .daystrip::-webkit-scrollbar { display: none; }
+
+  .day {
+    flex: 0 0 auto;
+    width: 48px;
+    padding: 9px 0 0;
+    border: 0;
+    border-top: 2px solid var(--tick);
+    border-radius: 0;
+    background: none;
+    text-align: center;
+    color: var(--faint);
+  }
+  .day.wide { width: auto; padding-inline: 14px; }
+  .day:hover { border-top-color: var(--muted); color: var(--muted); }
+
+  .day .dw {
+    display: block;
+    font: 500 9px/1 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .day .dd {
+    display: block;
+    margin-top: 4px;
+    font: 600 18px/1.1 var(--display);
+    letter-spacing: -0.03em;
     color: var(--muted);
+  }
+  .day .dot {
+    width: 3px; height: 3px;
+    margin: 5px auto 0;
+    border-radius: 50%;
+    background: var(--faint);
+  }
+  .day .dot.off { background: transparent; }
+
+  .day.on { border-top-color: var(--red); color: var(--red); }
+  .day.on .dd { color: var(--red); }
+  .day.on .dot { background: var(--red); }
+  .day.on .dot.off { background: transparent; }
+  .day.empty .dd { opacity: 0.4; }
+
+  .dayhead { display: flex; align-items: baseline; gap: 12px; padding: 18px 0 6px; }
+  .dayhead .n {
+    font: 700 44px/0.85 var(--display);
+    letter-spacing: -0.05em;
+  }
+  .dayhead .w {
+    font: 500 10.5px/1.4 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--faint);
+  }
+  .dayhead .w b { display: block; font-weight: 500; color: var(--muted); }
+
+  .minidate {
+    padding: 22px 0 6px;
+    font: 500 10.5px/1.4 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--faint);
   }
 
   .event {
-    padding: 14px 16px;
-    margin-bottom: 8px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    display: grid;
+    grid-template-columns: 82px 1fr auto;
+    gap: 14px;
+    align-items: start;
+    padding: 11px 14px;
+    margin: 0 -14px;
+    border-radius: 5px;
   }
-  .event:hover { border-color: var(--red); }
+  .event:hover {
+    background: var(--raised);
+    box-shadow: inset 2px 0 0 var(--red);
+  }
 
-  .time { font-size: 13px; font-weight: 600; color: var(--red); }
+  .time {
+    padding-top: 1px;
+    text-align: right;
+    font: 500 12px/1.6 var(--mono);
+    color: var(--red);
+    white-space: nowrap;
+  }
+  .time.allday { color: var(--faint); letter-spacing: 0.04em; }
 
   .title {
     display: block;
-    margin: 3px 0;
-    font-size: 16px; font-weight: 600;
+    font: 500 15.5px/1.35 var(--text);
+    letter-spacing: -0.005em;
     text-decoration: none;
   }
-  .title:hover { text-decoration: underline; }
+  .title:hover { text-decoration: underline; text-underline-offset: 2px; }
 
-  .meta { font-size: 14px; color: var(--muted); }
+  .meta { margin-top: 3px; font-size: 13px; color: var(--muted); }
+  .meta .where { color: var(--faint); }
 
-  .actions { margin-top: 10px; }
-
-  .addbtn {
-    display: inline-block;
-    padding: 5px 11px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    font-size: 13px;
+  .cal {
+    padding-top: 3px;
+    font: 500 10px/1.6 var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--faint);
     text-decoration: none;
-    color: var(--muted);
+    white-space: nowrap;
   }
-  .addbtn:hover { border-color: var(--red); color: var(--red); }
+  .cal:hover { color: var(--red); }
 
-  .status { padding: 48px 0; text-align: center; color: var(--muted); }
-  .status .primary, .status .ghost { margin-top: 16px; }
+  @media (hover: hover) {
+    .cal { opacity: 0; transition: opacity 0.12s; }
+    .event:hover .cal, .cal:focus { opacity: 1; }
+  }
+
+  @media (max-width: 560px) {
+    .main { padding: 0 16px 90px; }
+    .head { padding-top: 26px; }
+    .head h2 { font-size: 26px; }
+    .event { grid-template-columns: 64px 1fr; gap: 11px; padding: 10px 12px; margin: 0 -12px; }
+    .cal { grid-column: 2; padding-top: 5px; }
+    .dayhead .n { font-size: 36px; }
+  }
+
+  .status { padding: 54px 0; text-align: center; color: var(--muted); font-size: 14px; }
+  .status .primary, .status .ghost { margin-top: 18px; }
   .status code {
     display: inline-block;
-    padding: 2px 7px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    font-size: 13px;
+    margin-top: 8px;
+    padding: 3px 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    font: 500 12px/1.6 var(--mono);
   }
 </style>
 </head>
@@ -237,9 +408,52 @@
 <div class="app">
 
   <aside class="sidebar" id="sidebar">
-    <div class="brand">Big Red <span>Radar</span></div>
-    <button class="navbtn" data-view="feed">My feed <span class="count" id="followCount"></span></button>
-    <button class="navbtn" data-view="explore">Explore</button>
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <radialGradient id="sweep1" cx="32" cy="32" r="28" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="currentColor" stop-opacity=".95"/>
+            <stop offset="1" stop-color="currentColor" stop-opacity=".12"/>
+          </radialGradient>
+        </defs>
+        <path d="M32 32 51.1 12.9A27 27 0 0 1 57.4 22.8Z" fill="url(#sweep1)"/>
+        <g fill="none" stroke="currentColor" stroke-width="4.6">
+          <circle cx="32" cy="32" r="27"/>
+          <circle cx="32" cy="32" r="17.5"/>
+          <circle cx="32" cy="32" r="8.5"/>
+        </g>
+        <circle cx="32" cy="32" r="4.6" fill="currentColor"/>
+      </svg>
+      <div class="wordmark">Big Red<em>Radar</em></div>
+    </div>
+
+    <p class="tagline">Every Cornell club event, in one place.</p>
+
+    <button class="navbtn" data-view="feed">
+      <svg class="ic" width="16" height="16" viewBox="0 0 16 16" fill="none"
+           stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 4h10M3 8h10M3 12h6"/>
+      </svg>
+      <span class="lbl">My Feed</span>
+      <span class="count" id="followCount"></span>
+    </button>
+
+    <button class="navbtn" data-view="explore">
+      <svg class="ic" width="16" height="16" viewBox="0 0 16 16" fill="none"
+           stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <circle cx="8" cy="8" r="6"/>
+        <path d="M10.8 5.2 9.2 9.2 5.2 10.8 6.8 6.8Z" fill="currentColor" stroke="none"/>
+      </svg>
+      <span class="lbl">Explore</span>
+    </button>
+
+    <button class="navbtn collapse" id="collapse" aria-label="Collapse menu">
+      <svg class="ic" width="16" height="16" viewBox="0 0 16 16" fill="none"
+           stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9.5 4 5.5 8l4 4"/>
+      </svg>
+      <span class="lbl">Collapse</span>
+    </button>
   </aside>
 
   <div class="backdrop" id="backdrop"></div>
@@ -247,8 +461,16 @@
   <main class="main">
     <div class="inner">
       <div class="topbar">
-        <button class="hamburger" id="hamburger">&#9776;</button>
-        <strong>Big Red Radar</strong>
+        <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+        <svg width="20" height="20" viewBox="0 0 64 64" style="color:var(--red)" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-width="5">
+            <circle cx="32" cy="32" r="27"/>
+            <circle cx="32" cy="32" r="17.5"/>
+          </g>
+          <path d="M32 32 51.1 12.9A27 27 0 0 1 57.4 22.8Z" fill="currentColor" opacity=".5"/>
+          <circle cx="32" cy="32" r="5" fill="currentColor"/>
+        </svg>
+        <div class="wordmark">Big Red <em>Radar</em></div>
       </div>
       <div id="screen"><p class="status">Loading&hellip;</p></div>
     </div>
@@ -257,7 +479,6 @@
 </div>
 
 <script type="module">
-// ---------------------------------------------------------------- state
 
 const screenEl = document.getElementById('screen')
 const sidebar  = document.getElementById('sidebar')
@@ -267,24 +488,59 @@ let orgs = []
 let follows = loadFollows()
 
 function loadFollows() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem('brr.follows') || '[]'))
-  } catch {
-    return new Set()
-  }
+  try { return new Set(JSON.parse(localStorage.getItem('brr.follows') || '[]')) }
+  catch { return new Set() }
 }
 
 function saveFollows() {
-  try {
-    localStorage.setItem('brr.follows', JSON.stringify([...follows]))
-  } catch {}
+  try { localStorage.setItem('brr.follows', JSON.stringify([...follows])) }
+  catch {}
 }
 
-
 const ITHACA = 'America/New_York'
-const fmtTime = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, hour: 'numeric', minute: '2-digit' })
-const fmtDay  = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, weekday: 'long', month: 'long', day: 'numeric' })
-const fmtKey  = new Intl.DateTimeFormat('en-CA', { timeZone: ITHACA, year: 'numeric', month: '2-digit', day: '2-digit' })
+const fmtTime  = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, hour: 'numeric', minute: '2-digit' })
+const fmtKey   = new Intl.DateTimeFormat('en-CA', { timeZone: ITHACA, year: 'numeric', month: '2-digit', day: '2-digit' })
+const fmtWkShort = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, weekday: 'short' })
+const fmtWkLong  = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, weekday: 'long' })
+const fmtMonth   = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, month: 'long' })
+
+const STRIP_DAYS = 21
+
+const CATEGORIES = [
+  ['project-team',     'Project Teams'],
+  ['academic',         'Academic & Research'],
+  ['pre-professional', 'Pre-Professional'],
+  ['cultural',         'Cultural & Identity'],
+  ['performing-arts',  'Arts & Performance'],
+  ['sports',           'Sports & Fitness'],
+  ['gaming',           'Gaming'],
+  ['service',          'Service & Advocacy'],
+  ['religious',        'Religious & Spiritual'],
+  ['political',        'Politics'],
+  ['interest',         'Hobbies & Interests'],
+  ['media',            'Media'],
+  ['greek',            'Greek & Honor Societies'],
+  ['campus',           'Campus & Venues'],
+  ['residential',      'Residential'],
+  ['graduate',         'Graduate & Professional'],
+]
+
+function dayKeys(count) {
+  const [y, m, d] = fmtKey.format(new Date()).split('-').map(Number)
+  const noon = Date.UTC(y, m - 1, d, 16) 
+  const keys = []
+
+  for (let i = 0; i < count; i++) {
+    keys.push(fmtKey.format(new Date(noon + i * 86400000)))
+  }
+
+  return keys
+}
+
+function keyToDate(key) {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d, 16))
+}
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c =>
@@ -303,15 +559,8 @@ function matches(e, q) {
       || (e.location || '').toLowerCase().includes(q)
 }
 
-
-function utcStamp(d) {
-  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
-}
-
-// The date in Ithaca, as 20260916
-function ymd(d) {
-  return fmtKey.format(d).replace(/-/g, '')
-}
+function utcStamp(d) { return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '') }
+function ymd(d) { return fmtKey.format(d).replace(/-/g, '') }
 
 function gcalUrl(e) {
   const start = new Date(e.starts_at)
@@ -319,7 +568,6 @@ function gcalUrl(e) {
 
   let dates
   if (e.all_day) {
-    // End date is exclusive: a one-day event ends the NEXT day.
     const end = e.ends_at ? new Date(e.ends_at) : new Date(start.getTime() + 24 * hour)
     dates = `${ymd(start)}/${ymd(end)}`
   } else {
@@ -327,13 +575,11 @@ function gcalUrl(e) {
     dates = `${utcStamp(start)}/${utcStamp(end)}`
   }
 
-  const details = [e.description || '', e.url ? `\n\n${e.url}` : ''].join('').trim()
-
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: e.org_name ? `${e.title} (${e.org_name})` : e.title,
     dates,
-    details,
+    details: [e.description || '', e.url ? `\n\n${e.url}` : ''].join('').trim(),
     location: e.location || '',
     ctz: ITHACA,
   })
@@ -341,8 +587,31 @@ function gcalUrl(e) {
   return 'https://calendar.google.com/calendar/render?' + params.toString()
 }
 
+function rowHtml(e) {
+  const when = new Date(e.starts_at)
 
-function eventListHtml(events) {
+  const time = e.all_day
+    ? '<div class="time allday">All Day</div>'
+    : `<div class="time">${fmtTime.format(when)}</div>`
+
+  const where = e.location ? ` <span class="where">&middot; ${esc(e.location)}</span>` : ''
+
+  return `
+    <div class="event">
+      ${time}
+      <div>
+        <a class="title" href="${esc(e.url || '#')}" target="_blank" rel="noopener">${esc(e.title)}</a>
+        <div class="meta">${esc(e.org_name)}${where}</div>
+      </div>
+      <a class="cal" href="${esc(gcalUrl(e))}" target="_blank" rel="noopener">+ Cal</a>
+    </div>`
+}
+
+function rowsHtml(events) {
+  return events.map(rowHtml).join('')
+}
+
+function groupedHtml(events) {
   let html = ''
   let day = null
 
@@ -352,80 +621,191 @@ function eventListHtml(events) {
 
     if (key !== day) {
       day = key
-      html += `<div class="daylabel">${fmtDay.format(when)}</div>`
+      html += `<div class="minidate">${fmtWkLong.format(when)} &middot; ${fmtMonth.format(when)} ${when.getUTCDate()}</div>`
     }
 
-    const time = e.all_day ? 'All day' : fmtTime.format(when)
-    const place = e.location ? ' &middot; ' + esc(e.location) : ''
-
-    html += `
-      <div class="event">
-        <div class="time">${time}</div>
-        <a class="title" href="${esc(e.url || '#')}" target="_blank" rel="noopener">${esc(e.title)}</a>
-        <div class="meta">${esc(e.org_name)}${place}</div>
-        <div class="actions">
-          <a class="addbtn" href="${esc(gcalUrl(e))}" target="_blank" rel="noopener">+ Google Calendar</a>
-        </div>
-      </div>`
+    html += rowHtml(e)
   }
 
   return html
 }
 
+function mountBrowser(root, events) {
+  const byDay = new Map()
+
+  for (const e of events) {
+    const k = fmtKey.format(new Date(e.starts_at))
+    if (!byDay.has(k)) byDay.set(k, [])
+    byDay.get(k).push(e)
+  }
+
+  const keys = dayKeys(STRIP_DAYS)
+  const horizon = keys[keys.length - 1]
+  const later = events.filter(e => fmtKey.format(new Date(e.starts_at)) > horizon)
+
+  let selected = keys.find(k => byDay.has(k)) ?? (later.length ? 'later' : keys[0])
+
+  root.innerHTML = `
+    <div class="daystrip" id="strip"></div>
+    <div id="dayview"></div>
+  `
+
+  const strip = root.querySelector('#strip')
+  const view  = root.querySelector('#dayview')
+
+  function paintStrip() {
+    let html = keys.map((k, i) => {
+      const d = keyToDate(k)
+      const n = byDay.get(k)?.length ?? 0
+
+      return `
+        <button class="day ${k === selected ? 'on' : ''} ${n ? '' : 'empty'}" data-key="${k}">
+          <span class="dw">${i === 0 ? 'Today' : fmtWkShort.format(d)}</span>
+          <span class="dd">${d.getUTCDate()}</span>
+          <span class="dot ${n ? '' : 'off'}"></span>
+        </button>`
+    }).join('')
+
+    if (later.length) {
+      html += `
+        <button class="day wide ${selected === 'later' ? 'on' : ''}" data-key="later">
+          <span class="dw">After</span>
+          <span class="dd">Later</span>
+          <span class="dot"></span>
+        </button>`
+    }
+
+    strip.innerHTML = html
+  }
+
+  function paintDay() {
+    if (selected === 'later') {
+      view.innerHTML = `
+        <div class="dayhead"><span class="n">&hellip;</span><span class="w"><b>Later</b>beyond ${STRIP_DAYS} days</span></div>
+        ${groupedHtml(later)}`
+      return
+    }
+
+    const d = keyToDate(selected)
+    const list = byDay.get(selected) ?? []
+
+    view.innerHTML = `
+      <div class="dayhead">
+        <span class="n">${d.getUTCDate()}</span>
+        <span class="w"><b>${fmtWkLong.format(d)}</b>${fmtMonth.format(d)}</span>
+      </div>
+      ${list.length ? rowsHtml(list) : '<p class="status">Nothing on this day.</p>'}`
+  }
+
+  strip.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.day')
+    if (!btn) return
+
+    selected = btn.dataset.key
+    paintStrip()
+    paintDay()
+    btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  })
+
+  paintStrip()
+  paintDay()
+}
 
 function showClubs() {
   const first = follows.size === 0
 
   if (orgs.length === 0) {
-    screenEl.innerHTML = `
-      <div class="status">
-        No clubs in the database yet.<br>
-        Run the ingest to fill it:<br><code>npx tsx src/ingest.ts</code>
-      </div>`
+    screenEl.innerHTML = `<div class="status">No clubs in the database yet.<br><code>npx tsx src/ingest.ts</code></div>`
     return
   }
 
   screenEl.innerHTML = `
     <div class="head">
       <div>
-        <h2>${first ? 'Which clubs are you into?' : 'My clubs'}</h2>
+        <h2>${first ? 'Pick Your Clubs' : 'My Clubs'}</h2>
         <p class="sub">${first
-          ? 'Pick a few. Your feed shows only these - change it any time.'
+          ? 'Your feed shows only these. Change it whenever.'
           : 'Tap to follow or unfollow.'}</p>
       </div>
     </div>
-    <input class="field" id="clubSearch" type="search" placeholder="Search ${orgs.length} clubs&hellip;">
+    <input class="field" id="clubSearch" type="search" placeholder="Search ${orgs.length} clubs">
+    <div class="pills" id="cats"></div>
     <div class="chips" id="chips"></div>
     <div class="bar"><button class="primary" id="done"></button></div>
   `
 
   const search = document.getElementById('clubSearch')
+  const cats   = document.getElementById('cats')
   const chips  = document.getElementById('chips')
   const done   = document.getElementById('done')
 
-  function paint() {
+  let picks = new Set()
+
+  function chipHtml(o) {
+    return `<button class="chip ${follows.has(o.slug) ? 'on' : ''}" data-slug="${esc(o.slug)}">
+      ${esc(o.name)}<span class="n">${o.upcoming}</span></button>`
+  }
+
+  function byActivity(a, b) {
+    return (b.upcoming - a.upcoming) || a.name.localeCompare(b.name)
+  }
+
+  function paintCats() {
+    let html = `<button class="pill ${picks.size ? '' : 'on'}" data-cat="all">All<span class="n">${orgs.length}</span></button>`
+
+    if (follows.size) {
+      html += `<button class="pill ${picks.has('following') ? 'on' : ''}" data-cat="following">Following<span class="n">${follows.size}</span></button>`
+    }
+
+    for (const [key, label] of CATEGORIES) {
+      const n = orgs.filter(o => o.category === key).length
+      if (!n) continue
+      html += `<button class="pill ${picks.has(key) ? 'on' : ''}" data-cat="${key}">${label}<span class="n">${n}</span></button>`
+    }
+
+    cats.innerHTML = html
+  }
+
+  function inPicks(o) {
+    if (!picks.size) return true
+    if (picks.has('following') && follows.has(o.slug)) return true
+    return picks.has(o.category)
+  }
+
+  function paintChips() {
     const q = search.value.trim().toLowerCase()
 
-    let shown = orgs.filter(o => !q || o.name.toLowerCase().includes(q))
+    const list = q
+      ? orgs.filter(o => o.name.toLowerCase().includes(q))
+      : orgs.filter(inPicks)
 
-    shown.sort((a, b) => {
+    list.sort((a, b) => {
       const fa = follows.has(a.slug) ? 1 : 0
       const fb = follows.has(b.slug) ? 1 : 0
-      return (fb - fa) || (b.upcoming - a.upcoming)
+      return (fb - fa) || byActivity(a, b)
     })
 
-    if (!q) shown = shown.slice(0, 80)
+    chips.innerHTML = list.length
+      ? list.map(chipHtml).join('')
+      : '<p class="sub">Nothing here.</p>'
 
-    chips.innerHTML = shown.length
-      ? shown.map(o => `
-          <button class="chip ${follows.has(o.slug) ? 'on' : ''}" data-slug="${esc(o.slug)}">
-            ${esc(o.name)}<span class="n">${o.upcoming}</span>
-          </button>`).join('')
-      : '<p class="sub">No clubs match that.</p>'
-
-    done.textContent = follows.size ? `See my feed (${follows.size})` : 'Pick at least one club'
+    done.textContent = follows.size ? `See My Feed (${follows.size})` : 'Pick At Least One'
     done.disabled = follows.size === 0
   }
+
+  cats.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.pill')
+    if (!btn) return
+
+    const key = btn.dataset.cat
+    if (key === 'all') picks.clear()
+    else if (picks.has(key)) picks.delete(key)
+    else picks.add(key)
+
+    search.value = ''
+    paintCats()
+    paintChips()
+  })
 
   chips.addEventListener('click', (ev) => {
     const btn = ev.target.closest('.chip')
@@ -437,173 +817,130 @@ function showClubs() {
 
     saveFollows()
     updateFollowCount()
-    paint()
+    paintCats()
+    paintChips()
   })
 
-  search.addEventListener('input', paint)
+  search.addEventListener('input', paintChips)
   done.addEventListener('click', () => go('feed'))
 
-  paint()
+  paintCats()
+  paintChips()
 }
 
-async function showFeed() {
-  if (follows.size === 0) return showClubs()
-
+async function showEvents({ title, sub, url, categories = false }) {
   screenEl.innerHTML = '<p class="status">Loading&hellip;</p>'
 
-  const qs = encodeURIComponent([...follows].join(','))
-  const { events } = await getJson('/events?orgs=' + qs)
+  const { events } = await getJson(url)
 
   screenEl.innerHTML = `
     <div class="head">
       <div>
-        <h2>My feed</h2>
-        <p class="sub">${events.length} upcoming from ${follows.size} club${follows.size === 1 ? '' : 's'}</p>
+        <h2>${esc(title)}</h2>
+        <p class="sub">${esc(typeof sub === 'function' ? sub(events) : sub)}</p>
       </div>
-      <button class="ghost" id="edit">Edit clubs</button>
+      <button class="ghost" id="edit">Edit Clubs</button>
     </div>
-    <input class="field" id="q" type="search" placeholder="Search your events&hellip;">
-    <div id="list"></div>
+    <input class="field" id="q" type="search" placeholder="Search for any events or clubs">
+    ${categories ? '<div class="pills" id="cats"></div>' : ''}
+    <div id="body"></div>
   `
 
   document.getElementById('edit').addEventListener('click', showClubs)
 
-  const list = document.getElementById('list')
+  const body = document.getElementById('body')
+  const cats = document.getElementById('cats')
+  const picks = new Set()
 
-  function paint(items) {
-    if (items.length) {
-      list.innerHTML = eventListHtml(items)
+  function selected() {
+    return picks.size ? events.filter(e => picks.has(e.org_category)) : events
+  }
+
+  function paintCats() {
+    if (!cats) return
+
+    let html = `<button class="pill ${picks.size ? '' : 'on'}" data-cat="all">All<span class="n">${events.length}</span></button>`
+
+    for (const [key, label] of CATEGORIES) {
+      const n = events.filter(e => e.org_category === key).length
+      if (!n) continue
+      html += `<button class="pill ${picks.has(key) ? 'on' : ''}" data-cat="${key}">${label}<span class="n">${n}</span></button>`
+    }
+
+    cats.innerHTML = html
+  }
+
+  function paint() {
+    const q = document.getElementById('q').value.trim().toLowerCase()
+    const pool = selected()
+
+    if (q) {
+      const hits = pool.filter(e => matches(e, q))
+      body.innerHTML = hits.length ? groupedHtml(hits) : '<p class="status">Nothing found.</p>'
       return
     }
 
-    list.innerHTML = `
-      <div class="status">
-        Nothing coming up from your clubs.<br>
-        <button class="primary" id="toExplore">Explore all events</button>
-      </div>`
-
-    document.getElementById('toExplore').addEventListener('click', () => go('explore'))
-  }
-
-  document.getElementById('q').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase()
-    paint(q ? events.filter(x => matches(x, q)) : events)
-  })
-
-  paint(events)
-}
-
-async function showExplore() {
-  screenEl.innerHTML = '<p class="status">Loading&hellip;</p>'
-
-  const { events } = await getJson('/events')
-
-  screenEl.innerHTML = `
-    <div class="head">
-      <div>
-        <h2>Explore</h2>
-        <p class="sub">Everything happening at Cornell</p>
-      </div>
-      <button class="ghost" id="edit">Edit clubs</button>
-    </div>
-    <input class="field" id="q" type="search" placeholder="Search events, clubs, places&hellip;">
-    <div id="list"></div>
-  `
-
-  document.getElementById('edit').addEventListener('click', showClubs)
-
-  const list = document.getElementById('list')
-  list.innerHTML = eventListHtml(events)
-
-  document.getElementById('q').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase()
-    const items = q ? events.filter(x => matches(x, q)) : events
-    list.innerHTML = items.length ? eventListHtml(items) : '<p class="status">Nothing found.</p>'
-  })
-}
-
-function showSubscribe() {
-  const qs = follows.size ? '?orgs=' + encodeURIComponent([...follows].join(',')) : ''
-  const feedUrl = location.origin + '/calendar.ics' + qs
-  const isLocal = /localhost|127\.0\.0\.1|^http:\/\/192\.168\./.test(location.origin)
-
-  screenEl.innerHTML = `
-    <div class="head">
-      <div>
-        <h2>Subscribe</h2>
-        <p class="sub">${follows.size
-          ? `Your ${follows.size} club${follows.size === 1 ? '' : 's'}, kept in sync automatically.`
-          : 'Everything at Cornell, kept in sync automatically.'}</p>
-      </div>
-      <button class="ghost" id="edit">Edit clubs</button>
-    </div>
-
-    ${isLocal ? `
-      <div class="note">
-        This link points at your own computer, so Google's servers can't reach it yet.
-        Subscribing will only work once the app is deployed somewhere public.
-        The <b>+ Google Calendar</b> button on each event works right now though.
-      </div>` : ''}
-
-    <div class="urlrow">
-      <input id="feedUrl" readonly value="${esc(feedUrl)}">
-      <button class="primary" id="copy">Copy</button>
-    </div>
-
-    <h3>Google Calendar</h3>
-    <ol class="steps">
-      <li>Open Google Calendar on a computer</li>
-      <li>In the left sidebar, next to <b>Other calendars</b>, click <b>+</b></li>
-      <li>Choose <b>From URL</b></li>
-      <li>Paste the link above and click <b>Add calendar</b></li>
-    </ol>
-
-    <h3>Apple Calendar</h3>
-    <ol class="steps">
-      <li><b>File</b> &rarr; <b>New Calendar Subscription</b></li>
-      <li>Paste the link, set auto-refresh to every hour</li>
-    </ol>
-
-    <p class="sub">
-      Subscribed calendars update on their own - Google usually re-checks every
-      few hours. Changing your clubs here gives you a new link, so you'd
-      re-subscribe with the new one.
-    </p>
-  `
-
-  document.getElementById('edit').addEventListener('click', showClubs)
-
-  document.getElementById('copy').addEventListener('click', async () => {
-    const btn = document.getElementById('copy')
-    const input = document.getElementById('feedUrl')
-
-    try {
-      await navigator.clipboard.writeText(input.value)
-      btn.textContent = 'Copied'
-    } catch {
-      // Clipboard access can be blocked; fall back to selecting the text.
-      input.select()
-      btn.textContent = 'Press Ctrl+C'
+    if (!pool.length) {
+      body.innerHTML = `<div class="status">Nothing coming up.<br>
+        <button class="primary" id="toExplore">Explore Everything</button></div>`
+      const b = document.getElementById('toExplore')
+      if (b) b.addEventListener('click', () => go('explore'))
+      return
     }
 
-    setTimeout(() => { btn.textContent = 'Copy' }, 2000)
+    mountBrowser(body, pool)
+  }
+
+  if (cats) {
+    cats.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.pill')
+      if (!btn) return
+      const key = btn.dataset.cat
+      if (key === 'all') picks.clear()
+      else if (picks.has(key)) picks.delete(key)
+      else picks.add(key)
+      paintCats()
+      paint()
+    })
+  }
+
+  document.getElementById('q').addEventListener('input', paint)
+
+  paintCats()
+  paint()
+}
+
+function showFeed() {
+  if (follows.size === 0) return showClubs()
+
+  return showEvents({
+    title: 'My Feed',
+    sub: (ev) => `${ev.length} upcoming | ${follows.size} club${follows.size === 1 ? '' : 's selected'}`,
+    url: '/events?orgs=' + encodeURIComponent([...follows].join(',')),
   })
 }
 
+function showExplore() {
+  return showEvents({
+    title: 'Explore',
+    sub: 'Everything happening at Cornell',
+    url: '/events',
+    categories: true,
+  })
+}
 
 function updateFollowCount() {
   document.getElementById('followCount').textContent = follows.size || ''
 }
 
 function go(next) {
-  for (const b of document.querySelectorAll('.navbtn')) {
+  for (const b of document.querySelectorAll('.navbtn[data-view]')) {
     b.classList.toggle('on', b.dataset.view === next)
   }
 
   closeSidebar()
 
   if (next === 'explore') showExplore()
-  else if (next === 'subscribe') showSubscribe()
   else showFeed()
 }
 
@@ -619,10 +956,22 @@ document.getElementById('hamburger').addEventListener('click', () => {
 
 backdrop.addEventListener('click', closeSidebar)
 
-for (const b of document.querySelectorAll('.navbtn')) {
+for (const b of document.querySelectorAll('.navbtn[data-view]')) {
   b.addEventListener('click', () => go(b.dataset.view))
 }
 
+const appEl = document.querySelector('.app')
+
+function setCollapsed(on) {
+  appEl.classList.toggle('collapsed', on)
+  try { localStorage.setItem('brr.collapsed', on ? '1' : '') } catch {}
+}
+
+try { if (localStorage.getItem('brr.collapsed')) appEl.classList.add('collapsed') } catch {}
+
+document.getElementById('collapse').addEventListener('click', () => {
+  setCollapsed(!appEl.classList.contains('collapsed'))
+})
 
 try {
   const data = await getJson('/orgs')
@@ -630,12 +979,7 @@ try {
   updateFollowCount()
   go('feed')
 } catch (err) {
-  screenEl.innerHTML = `
-    <div class="status">
-      Couldn't load: ${esc(err.message)}<br>
-      Is the server running, and did you restart it after the last code change?<br>
-      <code>npx tsx src/api.ts</code>
-    </div>`
+  screenEl.innerHTML = `<div class="status">Couldn't load: ${esc(err.message)}<br><code>npx tsx src/api.ts</code></div>`
   console.error(err)
 }
 </script>

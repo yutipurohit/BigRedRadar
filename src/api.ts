@@ -1,4 +1,3 @@
-
 import Fastify from 'fastify'
 import fastifyStatic from '@fastify/static'
 import path from 'node:path'
@@ -25,6 +24,8 @@ app.get('/orgs', async () => {
     select
       o.slug,
       o.name,
+      o.category,
+      o.is_student_org,
       count(e.id)::int as upcoming
     from organizations o
     join events e
@@ -32,7 +33,7 @@ app.get('/orgs', async () => {
      and e.starts_at > now()
      and e.status = 'scheduled'
     where o.is_active
-    group by o.slug, o.name
+    group by o.slug, o.name, o.category, o.is_student_org
     order by upcoming desc, o.name
   `
 
@@ -56,11 +57,12 @@ app.get('/events', async (req) => {
       e.location, e.url, e.image_url,
       -- trimmed: the page only needs enough to prefill a calendar entry
       left(e.description, 400) as description,
-      o.name as org_name, o.slug as org_slug
+      o.name as org_name, o.slug as org_slug, o.category as org_category
     from events e
     join organizations o on o.id = e.org_id
     where e.starts_at > now()
       and e.status = 'scheduled'
+      and o.is_active
       ${slugs ? sql`and o.slug = any(${slugs})` : sql``}
     order by e.starts_at
     limit 500
@@ -81,6 +83,7 @@ app.get('/calendar.ics', async (req, reply) => {
     join organizations o on o.id = e.org_id
     where e.starts_at > now() - interval '1 day'
       and e.status = 'scheduled'
+      and o.is_active
       ${slugs ? sql`and o.slug = any(${slugs})` : sql``}
     order by e.starts_at
     limit 2000
@@ -115,12 +118,10 @@ async function handleRefresh(req: any, reply: any) {
   const given = req.headers['x-refresh-token'] ?? req.query?.token
 
   if (given !== secret) {
-    // Deliberately vague - don't tell a guesser whether they were close.
     return reply.code(401).send({ error: 'unauthorized' })
   }
 
   if (refreshing) {
-    // Not an error - a timer calling while one is running is normal.
     return reply.code(202).send({ started: false, reason: 'already running', lastRefresh })
   }
 
