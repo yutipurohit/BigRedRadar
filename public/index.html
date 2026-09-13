@@ -45,7 +45,6 @@
   button { font: inherit; cursor: pointer; }
   a { color: inherit; }
 
-  /* ---------- layout ---------- */
 
   .app { display: flex; min-height: 100vh; }
 
@@ -111,7 +110,6 @@
     }
   }
 
-  /* ---------- bits ---------- */
 
   .head {
     display: flex;
@@ -282,7 +280,6 @@ function saveFollows() {
   } catch {}
 }
 
-// ---------------------------------------------------------------- helpers
 
 const ITHACA = 'America/New_York'
 const fmtTime = new Intl.DateTimeFormat('en-US', { timeZone: ITHACA, hour: 'numeric', minute: '2-digit' })
@@ -306,9 +303,7 @@ function matches(e, q) {
       || (e.location || '').toLowerCase().includes(q)
 }
 
-// ---------------------------------------------------------------- google links
 
-// 2026-09-16T23:00:00.000Z -> 20260916T230000Z
 function utcStamp(d) {
   return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 }
@@ -318,8 +313,6 @@ function ymd(d) {
   return fmtKey.format(d).replace(/-/g, '')
 }
 
-// Google Calendar's "prefill a new event" link. Nothing to install, no login -
-// it just opens Google with the boxes already filled in.
 function gcalUrl(e) {
   const start = new Date(e.starts_at)
   const hour = 60 * 60 * 1000
@@ -348,7 +341,6 @@ function gcalUrl(e) {
   return 'https://calendar.google.com/calendar/render?' + params.toString()
 }
 
-// ---------------------------------------------------------------- event list
 
 function eventListHtml(events) {
   let html = ''
@@ -380,7 +372,6 @@ function eventListHtml(events) {
   return html
 }
 
-// ---------------------------------------------------------------- screens
 
 function showClubs() {
   const first = follows.size === 0
@@ -599,7 +590,6 @@ function showSubscribe() {
   })
 }
 
-// ---------------------------------------------------------------- navigation
 
 function updateFollowCount() {
   document.getElementById('followCount').textContent = follows.size || ''
@@ -633,7 +623,6 @@ for (const b of document.querySelectorAll('.navbtn')) {
   b.addEventListener('click', () => go(b.dataset.view))
 }
 
-// ---------------------------------------------------------------- start
 
 try {
   const data = await getJson('/orgs')

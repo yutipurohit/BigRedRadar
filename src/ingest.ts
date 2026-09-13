@@ -3,7 +3,6 @@ import { fetchLocalist, parseLocalist, LOCALIST_FEED } from './sources/localist'
 import type { ParsedEvent } from './sources/localist'
 import { fetchCampusGroups, CAMPUSGROUPS_FEED } from './sources/campusgroups'
 
-// "Cornell Data Science" -> "cornell-data-science"
 function slugify(name: string): string {
   const s = name
     .toLowerCase()
@@ -13,8 +12,6 @@ function slugify(name: string): string {
   return s || 'unknown'
 }
 
-// Remember club ids we've already looked up, so we ask the database once per
-// club instead of once per event.
 const orgCache = new Map<string, number>()
 
 async function getOrgId(name: string): Promise<number> {
@@ -46,7 +43,6 @@ async function getSourceId(orgId: number, kind: string, url: string): Promise<nu
   return Number(rows[0].id)
 }
 
-// Write many events in one trip instead of one at a time.
 async function saveEvents(rows: Record<string, unknown>[]) {
   const CHUNK = 500
 
@@ -97,8 +93,6 @@ const SOURCES: SourceDef[] = [
 async function main() {
   const started = Date.now()
 
-  // Both feeds cover the whole university, so they hang off a catch-all org.
-  // Each event still gets its REAL club from the group / organizer name.
   const catchAllOrgId = await getOrgId('Cornell Events')
 
   for (const src of SOURCES) {
@@ -123,8 +117,6 @@ async function main() {
 
     console.log(`    parsed ${events.length}`)
 
-    // A feed can list the same id twice. Postgres refuses to update the same
-    // row twice in one statement, so drop repeats before we batch them up.
     const seen = new Set<string>()
     const unique = events.filter((e) => {
       if (seen.has(e.externalId)) return false
@@ -136,7 +128,6 @@ async function main() {
       console.log(`    ${events.length - unique.length} duplicate ids dropped`)
     }
 
-    // Look up every club ONCE, not once per event.
     const names = [...new Set(unique.map((e) => e.groupName).filter(Boolean))] as string[]
     for (const name of names) await getOrgId(name)
     console.log(`    ${names.length} clubs`)
@@ -166,7 +157,6 @@ async function main() {
     console.log(`    saved ${rows.length}`)
   }
 
-  // Who actually posts events?
   const summary = await sql`
     select o.name, count(*)::int as n
     from events e

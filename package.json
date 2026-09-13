@@ -11,5 +11,13 @@
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   },
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/api.ts",
+    "dev": "tsx watch src/api.ts",
+    "ingest": "tsx src/ingest.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }

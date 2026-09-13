@@ -1,5 +1,3 @@
-// Builds a .ics calendar file - the format Google/Apple/Outlook subscribe to.
-
 export type IcsEvent = {
   id: number | string
   title: string
@@ -14,7 +12,6 @@ export type IcsEvent = {
 
 const ITHACA = 'America/New_York'
 
-// In .ics, these characters have meaning, so they must be escaped in any text.
 function esc(v: unknown): string {
   return String(v ?? '')
     .replace(/\\/g, '\\\\')
@@ -23,12 +20,10 @@ function esc(v: unknown): string {
     .replace(/\r?\n/g, '\\n')
 }
 
-// 2026-09-16T23:00:00.000Z  ->  20260916T230000Z
 function utcStamp(d: Date): string {
   return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 }
 
-// An all-day event is a DATE, not a moment - and it's the date in Ithaca.
 const dayFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: ITHACA, year: 'numeric', month: '2-digit', day: '2-digit',
 })
@@ -41,8 +36,6 @@ function addDays(d: Date, n: number): Date {
   return new Date(d.getTime() + n * 24 * 60 * 60 * 1000)
 }
 
-// The spec says lines wrap at 75 characters, continued by a leading space.
-// Some calendar apps genuinely choke on long unwrapped lines.
 function fold(line: string): string {
   if (line.length <= 74) return line
 
@@ -67,7 +60,6 @@ export function buildIcs(events: IcsEvent[], calendarName: string): string {
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${esc(calendarName)}`,
     `X-WR-TIMEZONE:${ITHACA}`,
-    // Hint to subscribers: re-check every 3 hours.
     'REFRESH-INTERVAL;VALUE=DURATION:PT3H',
     'X-PUBLISHED-TTL:PT3H',
   ]
@@ -78,20 +70,15 @@ export function buildIcs(events: IcsEvent[], calendarName: string): string {
     const start = new Date(e.starts_at)
 
     lines.push('BEGIN:VEVENT')
-    // Must be stable: the same event must keep the same UID forever, or
-    // subscribers will see it vanish and reappear as a new event.
     lines.push(`UID:brr-${e.id}@bigredradar`)
     lines.push(`DTSTAMP:${now}`)
 
     if (e.all_day) {
-      // DTEND on an all-day event is exclusive - the day AFTER it ends.
       const end = e.ends_at ? new Date(e.ends_at) : addDays(start, 1)
       lines.push(`DTSTART;VALUE=DATE:${dateStamp(start)}`)
       lines.push(`DTEND;VALUE=DATE:${dateStamp(end)}`)
     } else {
       lines.push(`DTSTART:${utcStamp(start)}`)
-      // No end time? Assume an hour, for display only. We never wrote this
-      // guess into the database - it lives here, at the edge.
       const end = e.ends_at ? new Date(e.ends_at) : new Date(start.getTime() + 60 * 60 * 1000)
       lines.push(`DTEND:${utcStamp(end)}`)
     }
@@ -114,6 +101,5 @@ export function buildIcs(events: IcsEvent[], calendarName: string): string {
 
   lines.push('END:VCALENDAR')
 
-  // The spec requires CRLF line endings, not plain newlines.
   return lines.join('\r\n') + '\r\n'
 }
