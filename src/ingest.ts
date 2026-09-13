@@ -1,8 +1,16 @@
+// The pipeline: for each source - fetch, clean, save, retire what vanished.
+//
+// Two ways to use this file:
+//   npx tsx src/ingest.ts          run it by hand
+//   import { runIngest }           call it from the API's refresh endpoint
+
+import { pathToFileURL } from 'node:url'
 import { sql } from './db'
-import { fetchLocalist, parseLocalist, LOCALIST_FEED } from './sources/localist'
+import { fetchAllLocalist, LOCALIST_FEED } from './sources/localist'
 import type { ParsedEvent } from './sources/localist'
 import { fetchCampusGroups, CAMPUSGROUPS_FEED } from './sources/campusgroups'
 
+// "Cornell Data Science" -> "cornell-data-science"
 function slugify(name: string): string {
   const s = name
     .toLowerCase()
@@ -18,11 +26,9 @@ async function getOrgId(name: string): Promise<number> {
   const hit = orgCache.get(name)
   if (hit !== undefined) return hit
 
-  const slug = slugify(name)
-
   const rows = await sql`
     insert into organizations (slug, name)
-    values (${slug}, ${name})
+    values (${slugify(name)}, ${name})
     on conflict (slug) do update set name = excluded.name
     returning id
   `
@@ -71,6 +77,25 @@ async function saveEvents(rows: Record<string, unknown>[]) {
   }
 }
 
+// Anything still in the future that this source has stopped listing has
+// probably been pulled. Retire it rather than leaving a ghost.
+//
+// This runs AFTER saving, so everything still in the feed has just had its
+// last_seen_at bumped to now and is safely excluded.
+async function retireVanished(sourceId: number): Promise<number> {
+  const rows = await sql`
+    update events
+    set status = 'cancelled', updated_at = now()
+    where source_id = ${sourceId}
+      and status = 'scheduled'
+      and starts_at > now()
+      and last_seen_at < now() - interval '2 days'
+    returning id
+  `
+
+  return rows.length
+}
+
 type SourceDef = {
   kind: 'localist' | 'ics' | 'website'
   url: string
@@ -78,26 +103,34 @@ type SourceDef = {
 }
 
 const SOURCES: SourceDef[] = [
-  {
-    kind: 'localist',
-    url: LOCALIST_FEED,
-    load: async () => parseLocalist(await fetchLocalist(60, 100, 1)),
-  },
-  {
-    kind: 'ics',
-    url: CAMPUSGROUPS_FEED,
-    load: fetchCampusGroups,
-  },
+  { kind: 'localist', url: LOCALIST_FEED, load: () => fetchAllLocalist(60) },
+  { kind: 'ics', url: CAMPUSGROUPS_FEED, load: fetchCampusGroups },
 ]
 
-async function main() {
+export type SourceResult = {
+  kind: string
+  parsed: number
+  saved: number
+  clubs: number
+  retired: number
+  error?: string
+}
+
+export type IngestResult = {
+  ok: boolean
+  seconds: number
+  sources: SourceResult[]
+}
+
+export async function runIngest(log = console.log): Promise<IngestResult> {
   const started = Date.now()
+  const results: SourceResult[] = []
 
   const catchAllOrgId = await getOrgId('Cornell Events')
 
   for (const src of SOURCES) {
     const sourceId = await getSourceId(catchAllOrgId, src.kind, src.url)
-    console.log(`\n--- ${src.kind}`)
+    const result: SourceResult = { kind: src.kind, parsed: 0, saved: 0, clubs: 0, retired: 0 }
 
     let events: ParsedEvent[]
 
@@ -106,7 +139,10 @@ async function main() {
     } catch (err) {
       // One broken source must not kill the whole run.
       const msg = (err as Error).message
-      console.error(`    FAILED: ${msg}`)
+      result.error = msg
+      results.push(result)
+      log(`${src.kind}: FAILED - ${msg}`)
+
       await sql`
         update sources
         set last_status = ${msg.slice(0, 200)}, last_fetched_at = now()
@@ -115,8 +151,10 @@ async function main() {
       continue
     }
 
-    console.log(`    parsed ${events.length}`)
+    result.parsed = events.length
 
+    // A feed can list the same id twice. Postgres refuses to update the same
+    // row twice in one statement, so drop repeats before we batch them up.
     const seen = new Set<string>()
     const unique = events.filter((e) => {
       if (seen.has(e.externalId)) return false
@@ -124,13 +162,9 @@ async function main() {
       return true
     })
 
-    if (unique.length !== events.length) {
-      console.log(`    ${events.length - unique.length} duplicate ids dropped`)
-    }
-
     const names = [...new Set(unique.map((e) => e.groupName).filter(Boolean))] as string[]
     for (const name of names) await getOrgId(name)
-    console.log(`    ${names.length} clubs`)
+    result.clubs = names.length
 
     const rows = unique.map((e) => ({
       org_id: e.groupName ? orgCache.get(e.groupName)! : catchAllOrgId,
@@ -147,6 +181,13 @@ async function main() {
     }))
 
     await saveEvents(rows)
+    result.saved = rows.length
+
+    // Only retire things if this run actually brought back a real haul.
+    // A feed that returns two events today must not cancel a thousand.
+    if (rows.length > 10) {
+      result.retired = await retireVanished(sourceId)
+    }
 
     await sql`
       update sources
@@ -154,30 +195,48 @@ async function main() {
       where id = ${sourceId}
     `
 
-    console.log(`    saved ${rows.length}`)
+    log(`${src.kind}: ${result.saved} saved, ${result.clubs} clubs, ${result.retired} retired`)
+    results.push(result)
   }
 
-  const summary = await sql`
-    select o.name, count(*)::int as n
-    from events e
-    join organizations o on o.id = e.org_id
-    where e.starts_at > now()
-    group by o.name
-    order by n desc
-    limit 20
-  `
-
-  console.log('\ntop orgs by upcoming events:')
-  for (const r of summary) {
-    console.log(`   ${String(r.n).padStart(4)}  ${r.name}`)
+  return {
+    ok: results.every((r) => !r.error),
+    seconds: Number(((Date.now() - started) / 1000).toFixed(1)),
+    sources: results,
   }
-
-  console.log(`\ndone in ${((Date.now() - started) / 1000).toFixed(1)}s`)
-  await sql.end()
 }
 
-main().catch(async (err) => {
-  console.error(err)
-  await sql.end()
-  process.exit(1)
-})
+// ---------------------------------------------------------------------------
+// Only when run directly from the command line - not when imported by the API,
+// which needs the database connection to stay open.
+
+const runDirectly =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
+
+if (runDirectly) {
+  try {
+    const result = await runIngest()
+
+    const summary = await sql`
+      select o.name, count(*)::int as n
+      from events e
+      join organizations o on o.id = e.org_id
+      where e.starts_at > now() and e.status = 'scheduled'
+      group by o.name
+      order by n desc
+      limit 20
+    `
+
+    console.log('\ntop orgs by upcoming events:')
+    for (const r of summary) {
+      console.log(`   ${String(r.n).padStart(4)}  ${r.name}`)
+    }
+
+    console.log(`\ndone in ${result.seconds}s`)
+  } catch (err) {
+    console.error(err)
+    process.exitCode = 1
+  } finally {
+    await sql.end()
+  }
+}

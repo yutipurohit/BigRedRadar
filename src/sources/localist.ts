@@ -38,6 +38,28 @@ export async function fetchLocalist(days = 30, perPage = 100, page = 1) {
   return res.json()
 }
 
+export async function fetchAllLocalist(
+  days = 60,
+  perPage = 100,
+  maxPages = 25,
+): Promise<ParsedEvent[]> {
+  const all: ParsedEvent[] = []
+
+  for (let page = 1; page <= maxPages; page++) {
+    const data = await fetchLocalist(days, perPage, page)
+    const count = data?.events?.length ?? 0
+
+    all.push(...parseLocalist(data))
+
+    if (count < perPage) break
+
+    // Don't hammer Cornell's server. A quarter second between pages.
+    await new Promise((r) => setTimeout(r, 250))
+  }
+
+  return all
+}
+
 export function parseLocalist(data: any): ParsedEvent[] {
   const results: ParsedEvent[] = []
 

@@ -5,8 +5,6 @@ import type { ParsedEvent } from './localist'
 export const CAMPUSGROUPS_FEED =
   'https://cornell.campusgroups.com/ical/cornell/ical_cornell.ics'
 
-// Identify ourselves. If we ever cause a problem, someone can email instead
-// of just blocking us.
 const USER_AGENT = 'BigRedRadar/0.1 (yutipurohit@gmail.com)'
 
 export async function fetchIcs(url: string): Promise<string> {
@@ -94,7 +92,6 @@ export function parseIcs(raw: string): ParsedEvent[] {
       description: text(ev.description).trim(),
       startsAt: start,
       endsAt: ev.end ? new Date(ev.end) : null,
-      // node-ical marks date-only entries (no time of day) as 'date'
       allDay: ev.datetype === 'date',
       location: cleanLocation(ev.location),
       url: text(ev.url).trim() || null,
