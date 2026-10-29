@@ -81,6 +81,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </svg>
           <span className="lbl">Explore</span>
         </Link>
+        <Link className={`navbtn ${pathname.startsWith('/onboarding') ? 'on' : ''}`} href="/onboarding" aria-label="My preferences">
+          <span className="ic" aria-hidden="true">☷</span>
+          <span className="lbl">My preferences</span>
+        </Link>
       </aside>
 
       <div className={`backdrop ${drawer ? 'show' : ''}`} onClick={() => setDrawer(false)} />

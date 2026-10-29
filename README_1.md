@@ -46,9 +46,10 @@ No ORM. Queries are written in SQL with [postgres.js](https://github.com/porsage
 db/migrations/        numbered SQL, run in order
 web/
   app/
-    api/              9 route handlers
+    api/              10 route handlers
     clubs/            club picker and per-club pages
     explore/          everything happening
+    onboarding/       optional account preferences survey
     page.tsx          My Feed
   components/
   lib/
@@ -68,13 +69,14 @@ Everything runs from `web/`, which is the Vercel root directory.
 | `POST /api/auth/google` | Verify a Google ID token, issue a session |
 | `POST /api/auth/logout` | Clear the session |
 | `PUT /api/subscriptions` | Replace the signed-in user's followed clubs |
+| `GET\|PUT\|POST /api/profile/survey` | Read, save or skip account survey preferences |
 | `GET /api/calendar.ics` | Subscribable calendar feed |
 | `GET /api/health` | Status and last ingest result |
 | `GET\|POST /api/tasks/refresh` | Trigger an ingest (requires `REFRESH_TOKEN`) |
 
 ## Database
 
-Eight tables: `organizations`, `sources`, `raw_items`, `events`, `users`, `sessions`, `subscriptions`, `app_state`. The constraints worth knowing:
+Nine tables: `organizations`, `sources`, `raw_items`, `events`, `users`, `sessions`, `subscriptions`, `app_state`, `user_survey_profiles`. The constraints worth knowing:
 
 - `events` is unique on `(source_id, external_id)` — this is what makes the ingest idempotent.
 - `subscriptions` uses `(user_id, org_id)` as a composite primary key, so a user can't follow a club twice.
@@ -122,6 +124,9 @@ For Google sign-in to work locally, add `http://localhost:3000` to the Authorize
 | `006_users.sql` | users, sessions, subscriptions |
 | `007_app_state.sql` | refresh bookkeeping, since serverless has no memory between calls |
 | `008_nexus_fix.sql` | corrected Cornell Nexus timeline |
+| `009_survey_profiles.sql` | account survey answers, priorities and skip/completion state |
+
+For survey setup, API behavior and validation commands, see [Onboarding survey](docs/onboarding-survey.md).
 
 ## Data sources
 
